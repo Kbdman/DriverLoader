@@ -12,6 +12,19 @@ const char* getDriverName(const char* filepath)
 }
 string MakePathName(const char * filePath)
 {
+	char buf[1024] = { 0 };
+	const char* res = strrchr(filePath, '\\');
+	if (res == NULL)
+	{
+		
+		GetCurrentDirectory(1024, buf);
+		printf("Get Work Directory:%s...\n",buf);
+		string res=buf;
+		res += "\\";
+		res += filePath;
+		return res;
+
+	}
 	return filePath;
 	
 }
@@ -22,6 +35,7 @@ SC_HANDLE CreateServ(SC_HANDLE scmhandle, const char * ServiceName, const char* 
 }
 int main(int argc,char** argv)
 {
+	
 	if (argc < 2)
 	{
 		printf("Command Not Correct!\n");
@@ -36,6 +50,7 @@ int main(int argc,char** argv)
 
 	const char* DriverName = getDriverName(argv[1]);
 	string pathName = MakePathName(argv[1]);
+	printf("filePath=%s\n",pathName);
 	SC_HANDLE hSer = CreateServ(schandle,DriverName,pathName.c_str());
 
 	if (hSer==NULL)
