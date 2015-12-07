@@ -12,26 +12,37 @@ const char* getDriverName(const char* filepath)
 }
 string MakePathName(const char * filePath)
 {
-	char buf[1024] = { 0 };
 	const char* res = strrchr(filePath, '\\');
 	if (res == NULL)
 	{
-		
-		GetCurrentDirectory(1024, buf);
-		printf("Get Work Directory:%s...\n",buf);
-		string res=buf;
+		int bufsize=GetCurrentDirectory(0, NULL);
+		char* pbuf = (char*)calloc(bufsize+10, 1);
+		if (pbuf == NULL)
+		{
+			printf("Alloc memory for buf failed\n");
+			exit(0);
+		}
+		GetCurrentDirectory(bufsize, pbuf);
+		printf("Get Work Directory:%s...\n",pbuf);
+		string res=pbuf;
 		res += "\\";
 		res += filePath;
+		free(pbuf);
 		return res;
-
 	}
 	return filePath;
 	
 }
 SC_HANDLE CreateServ(SC_HANDLE scmhandle, const char * ServiceName, const char* DriverName)
 {
-	return CreateService(scmhandle, ServiceName, ServiceName, SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START,
-		SERVICE_ERROR_NORMAL, DriverName, NULL, NULL, NULL, NULL, NULL);
+	if (fopen(DriverName, "r") == NULL)
+	{
+		printf("Cannot find file:%s\n", DriverName);
+		return NULL;
+	}
+	return CreateService(scmhandle, ServiceName, ServiceName, SERVICE_ALL_ACCESS,
+		SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START,SERVICE_ERROR_NORMAL,
+		DriverName, NULL, NULL, NULL, NULL, NULL);
 }
 int main(int argc,char** argv)
 {
@@ -50,7 +61,7 @@ int main(int argc,char** argv)
 
 	const char* DriverName = getDriverName(argv[1]);
 	string pathName = MakePathName(argv[1]);
-	printf("filePath=%s\n",pathName);
+	printf("filePath=%s\n",pathName.c_str());
 	SC_HANDLE hSer = CreateServ(schandle,DriverName,pathName.c_str());
 
 	if (hSer==NULL)
@@ -84,7 +95,6 @@ int main(int argc,char** argv)
 	}
 	CloseServiceHandle(hSer);
 	printf("Create Success\n");
-
 	hSer = OpenService(schandle, DriverName, SERVER_ALL_ACCESS|SERVICE_START);
 	if (hSer == NULL)
 	{
