@@ -75,17 +75,23 @@ int main(int argc,char** argv)
 			return 0;
 		}
 		printf("Service with same name Exsits,try to delete it \n");
-		SC_HANDLE  old_Service =OpenService(schandle,DriverName,DELETE);
+		SC_HANDLE  old_Service =OpenService(schandle,DriverName,DELETE|SERVICE_STOP);
 		if (old_Service == NULL)
 		{
 			printf("Open Service Failed! ErrCode:%d\n",GetLastError());
 			return 0;
+		}
+		SERVICE_STATUS sta = {0};
+		if (!ControlService(old_Service, SERVICE_CONTROL_STOP, &sta))
+		{
+			printf("Try stop service,but failed.\n");
 		}
 		if (!DeleteService(old_Service))
 		{
 			printf("Delete Service Failed! ErrCode:%d\n", GetLastError());
 			return 0;
 		}
+		CloseServiceHandle(old_Service);
 		hSer = CreateServ(schandle, DriverName, pathName.c_str());
 		if (hSer == NULL)
 		{
