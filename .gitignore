@@ -29,3 +29,6 @@
 Debug/
 x64/
 Release/
+.vs/DriverLoader/v15/ipch/AutoPCH/521a259c4edfde55/SRC.ipch
+*.db
+*.opendb
